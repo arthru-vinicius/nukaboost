@@ -46,10 +46,20 @@ jobs:
       - name: Build release binaries
         run: cargo build --workspace --release --locked
 
+      - name: Confirm WiX 7 OSMF EULA acceptance
+        shell: pwsh
+        env:
+          WIX7_OSMF_EULA_ACCEPTED: ${{ vars.WIX7_OSMF_EULA_ACCEPTED }}
+        run: |
+          if ($env:WIX7_OSMF_EULA_ACCEPTED -ne "true") {
+            throw "Read the WiX 7 OSMF terms and set the repository Actions variable WIX7_OSMF_EULA_ACCEPTED to true before enabling MSI builds."
+          }
+
       - name: Install WiX Toolset 7
         shell: pwsh
         run: |
           dotnet tool install --global wix --version 7.0.0
+          wix eula accept wix7
           wix extension add -g WixToolset.UI.wixext/7.0.0
           wix extension add -g WixToolset.Util.wixext/7.0.0
 

@@ -17,6 +17,22 @@ migração de dados ou teste prolongado que não deva ser interrompido por
 suspensão automática do Windows. Não use para tarefas rápidas (segundos) —
 o custo de gerenciar uma lease não compensa.
 
+## Localizar o CLI
+
+Instalações novas adicionam a pasta do NukaBoost ao `PATH` do usuário. Em um
+terminal ou processo iniciado antes da instalação, resolva o executável uma
+vez e use `$NukaBoostCtl` nos comandos seguintes:
+
+```powershell
+$NukaBoostCtl = (Get-Command nukaboostctl.exe -ErrorAction SilentlyContinue).Source
+if (-not $NukaBoostCtl) {
+    $NukaBoostCtl = Join-Path $env:LOCALAPPDATA "Programs\NukaBoost\nukaboostctl.exe"
+}
+if (-not (Test-Path -LiteralPath $NukaBoostCtl)) {
+    throw "nukaboostctl.exe não foi encontrado"
+}
+```
+
 ## Regras invioláveis
 
 - **Nunca** execute `nukaboostctl stop` ou `nukaboostctl stop --force`.
@@ -82,9 +98,10 @@ o custo de gerenciar uma lease não compensa.
    nukaboostctl release <lease-id>
    ```
 
-8. Confirmar a liberação: a resposta de `release` deve indicar sucesso
-   (`lease_released`). Se falhar, registre o problema — não tente
-   compensar chamando `stop`.
+8. Confirmar a liberação: `release` deve terminar com código de saída zero.
+   Consulte `status --json` novamente e confirme que a lease criada não está
+   mais contabilizada. Se falhar, registre o problema e não tente compensar
+   chamando `stop`.
 
 ## Referência rápida de comandos
 

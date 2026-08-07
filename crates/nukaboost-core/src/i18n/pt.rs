@@ -1,18 +1,18 @@
-//! Tabela de strings em português — idioma alternativo selecionável pelo usuário.
+//! Tabela de strings em português. É o idioma alternativo selecionável pelo usuário.
 
 use super::Strings;
 
 /// Instância estática com todos os textos da interface em português.
 pub static STRINGS: Strings = Strings {
-    tray_tooltip_inactive: "NukaBoost — Desativado",
-    tray_tooltip_active: "NukaBoost — Ativo",
-    tray_tooltip_error: "NukaBoost — Erro de proteção",
+    tray_tooltip_inactive: "NukaBoost: Desativado",
+    tray_tooltip_active: "NukaBoost: Ativo",
+    tray_tooltip_error: "NukaBoost: Erro de proteção",
 
     menu_start: "Iniciar",
     menu_stop: "Parar",
     menu_language: "Idioma",
-    menu_language_en: "EN — English",
-    menu_language_pt: "PT — Português",
+    menu_language_en: "English (EN)",
+    menu_language_pt: "Português (PT)",
     menu_about: "Sobre",
     menu_exit: "Fechar",
 
@@ -20,13 +20,10 @@ pub static STRINGS: Strings = Strings {
     about_version_label: "Versão",
     about_state_label: "Estado atual",
     about_description: "O NukaBoost mantém seu PC acordado durante tarefas longas, como \
-compilações, downloads e renderizações — mesmo com a tampa fechada.",
+compilações, downloads e renderizações, mesmo com a tampa fechada.",
     about_never_keeps_screen_on: "O NukaBoost nunca mantém a tela ligada.",
     about_ventilation_warning: "Garanta ventilação adequada enquanto estiver ativo para evitar \
 aquecimento excessivo.",
-    about_tray_pin_hint: "O Windows não permite que aplicativos fixem seu próprio ícone na \
-bandeja. Clique com o botão direito na barra de tarefas, escolha \"Configurações da barra de \
-tarefas\" e ative \"Mostrar sempre todos os ícones\" para manter o NukaBoost visível.",
     about_close_button: "Fechar",
 
     safety_warning_checkbox: "Não mostrar este aviso novamente",

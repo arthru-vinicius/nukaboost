@@ -393,11 +393,10 @@ impl Orchestrator {
     /// Executa os passos 2 a 14 da transação de ativação. Qualquer falha
     /// aciona o rollback e propaga o erro; `activate` decide o estado final.
     fn try_activate(self: &Arc<Self>) -> NukaResult<ActiveSession> {
-        // Passo 2: política administrativa.
-        power::check_policy_allows_scheme_changes()?;
-
-        // Passo 3: ler o plano original.
+        // Passo 2 e 3: ler o plano original e consultar as políticas sobre
+        // esse GUID e sobre cada configuração que será alterada.
         let original_scheme = PowerScheme::active()?;
+        power::check_policy_allows_scheme_changes(original_scheme.guid())?;
 
         // Passo 4: duplicar o plano.
         let temporary_scheme = original_scheme.duplicate()?;
@@ -846,7 +845,6 @@ impl Orchestrator {
         let (power_source, battery_percent, battery_saver) = power_source::read();
 
         StatusReport {
-            protocol_version: nukaboost_core::ipc::PROTOCOL_VERSION,
             app_version: APP_VERSION.to_string(),
             process_running: true,
             state,

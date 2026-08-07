@@ -18,6 +18,12 @@ trigger: >-
 
 cli: nukaboostctl
 
+executable_resolution: >-
+  Procurar nukaboostctl.exe no PATH. Se não estiver disponível porque o
+  processo foi iniciado antes da instalação, usar
+  %LocalAppData%\Programs\NukaBoost\nukaboostctl.exe. Falhar claramente se
+  nenhum dos caminhos existir.
+
 rules:
   - Nunca execute "nukaboostctl stop" ou "nukaboostctl stop --force". O
     comando --force cancela leases de todos os donos, não só as do agente,
@@ -83,9 +89,10 @@ procedure:
 
   - step: 8
     action: >-
-      Confirmar a liberação: a resposta deve indicar sucesso
-      (lease_released). Se falhar, registrar o problema — não tentar
-      compensar chamando stop.
+      Confirmar a liberação: o comando release deve terminar com código de
+      saída zero. Consultar status --json novamente e confirmar que a lease
+      criada não está mais contabilizada. Se falhar, registrar o problema e
+      não tentar compensar chamando stop.
 
 error_codes:
   safety_ack_required:

@@ -99,7 +99,6 @@ pub struct Strings {
     pub about_description: &'static str,
     pub about_never_keeps_screen_on: &'static str,
     pub about_ventilation_warning: &'static str,
-    pub about_tray_pin_hint: &'static str,
     pub about_close_button: &'static str,
 
     // Aviso de segurança (controles; o corpo do texto é sempre bilíngue).

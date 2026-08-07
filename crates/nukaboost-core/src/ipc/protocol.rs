@@ -240,13 +240,13 @@ impl ProtectionsReport {
     }
 }
 
-/// Corpo completo de `nukaboostctl status --json`, também usado como a
-/// carga de [`Outcome::Status`].
+/// Dados de estado usados como carga de [`Outcome::Status`]. O campo
+/// `protocol_version` pertence ao [`Envelope`] e o CLI o recoloca na raiz ao
+/// apresentar `nukaboostctl status --json`.
 ///
 /// Reproduz exatamente a forma do JSON de exemplo da seção 11 do plano.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StatusReport {
-    pub protocol_version: u32,
     pub app_version: String,
     pub process_running: bool,
     pub state: State,
@@ -313,7 +313,6 @@ mod tests {
     #[test]
     fn status_report_round_trips_through_json() {
         let report = StatusReport {
-            protocol_version: PROTOCOL_VERSION,
             app_version: "1.0.0".to_string(),
             process_running: true,
             state: State::Active,
@@ -333,5 +332,29 @@ mod tests {
         assert_eq!(parsed.state, State::Active);
         assert_eq!(parsed.power_source, PowerSource::Battery);
         assert_eq!(parsed.battery_percent, Some(42));
+    }
+
+    #[test]
+    fn status_envelope_contains_protocol_version_only_once() {
+        let report = StatusReport {
+            app_version: "1.0.0".to_string(),
+            process_running: true,
+            state: State::Inactive,
+            language: Language::En,
+            manual_hold: false,
+            leases: 0,
+            power_source: PowerSource::Ac,
+            battery_percent: None,
+            battery_saver: false,
+            protections: sample_protections(false),
+            last_error: None,
+        };
+        let envelope = Envelope::new(Outcome::Status(Box::new(report)));
+
+        let json = serde_json::to_string(&envelope).unwrap();
+        assert_eq!(json.matches("\"protocol_version\"").count(), 1);
+
+        let parsed: Envelope<Outcome> = serde_json::from_str(&json).unwrap();
+        assert!(matches!(parsed.body, Outcome::Status(_)));
     }
 }

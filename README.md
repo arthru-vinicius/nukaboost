@@ -46,10 +46,46 @@ nukaboostctl startup enable
 Na primeira execução, confirme o aviso de segurança pela interface. Uma
 ativação via CLI é recusada enquanto esse aviso não tiver sido reconhecido.
 
+## Arquivos instalados e dados locais
+
+Por padrão, o MSI instala os executáveis em:
+
+```text
+%LocalAppData%\Programs\NukaBoost\
+```
+
+Configurações, journal de recuperação e logs ficam separados em:
+
+```text
+%LocalAppData%\NukaBoost\
+```
+
+O instalador mostra o caminho completo na etapa de seleção de recursos e
+permite alterá-lo antes da instalação.
+
+O MSI adiciona essa pasta ao `PATH` do usuário. Abra um terminal novo depois
+de instalar ou atualizar para usar `nukaboostctl` sem informar o caminho
+completo.
+
 ## Desenvolvimento
 
 Pré-requisitos: Windows 11, Rust 1.94.1 e WiX Toolset 7 com as extensões UI e
 Util.
+
+O WiX 7 exige aceitação explícita da licença OSMF. Leia os
+[termos oficiais do WiX](https://docs.firegiant.com/wix/osmf/) e confirme que
+eles se aplicam ao seu uso antes de executar:
+
+```powershell
+dotnet tool install --global wix --version 7.0.0
+wix eula accept wix7
+wix extension add -g WixToolset.UI.wixext/7.0.0
+wix extension add -g WixToolset.Util.wixext/7.0.0
+```
+
+No GitHub Actions, essa confirmação é representada pela variável de
+repositório `WIX7_OSMF_EULA_ACCEPTED` com o valor `true`. Sem ela, o workflow
+interrompe o empacotamento antes de aceitar a licença.
 
 ```powershell
 cargo fmt --all -- --check

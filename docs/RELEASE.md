@@ -32,11 +32,17 @@ Alternativas:
 
 ## Checklist da versão
 
-1. Atualize a versão em `Cargo.toml`, `installer/NukaBoost.wxs` e nos
+1. Leia os [termos OSMF do WiX 7](https://docs.firegiant.com/wix/osmf/) e,
+   caso concorde e esteja em conformidade, configure a variável de
+   repositório `WIX7_OSMF_EULA_ACCEPTED=true` para permitir o build do MSI no
+   GitHub Actions.
+2. Atualize a versão em `Cargo.toml`, `installer/NukaBoost.wxs` e nos
    recursos `VERSIONINFO`/manifesto em `crates/nukaboost-win32/resources`.
-2. Atualize as notas, confirme que `docs/plano.md` continua coerente e ative
+   No MSI, mantenha o `UpgradeCode` permanente, gere um `ProductCode` novo
+   para a versão e não o altere novamente em rebuilds dessa mesma versão.
+3. Atualize as notas, confirme que `docs/plano.md` continua coerente e ative
    **Settings → Security → Private vulnerability reporting** no GitHub.
-3. Execute:
+4. Execute:
 
    ```powershell
    cargo fmt --all -- --check
@@ -45,11 +51,11 @@ Alternativas:
    cargo build --release
    ```
 
-4. Assine **primeiro** `NukaBoost.exe` e `nukaboostctl.exe`.
-5. Gere o MSI com o comando do README.
-6. Assine o MSI por último. Qualquer modificação posterior invalida a
+5. Assine **primeiro** `NukaBoost.exe` e `nukaboostctl.exe`.
+6. Gere o MSI com o comando do README.
+7. Assine o MSI por último. Qualquer modificação posterior invalida a
    assinatura.
-7. Verifique assinatura, MSI e hashes:
+8. Verifique assinatura, MSI e hashes:
 
    ```powershell
    signtool verify /pa /all /v target\release\NukaBoost.exe
@@ -80,10 +86,10 @@ confira todos os arquivos e só então publique:
 ```powershell
 git switch main
 git pull --ff-only
-git tag -s v1.0.0 -m "NukaBoost v1.0.0"
-git push origin v1.0.0
+git tag -s v1.0.1 -m "NukaBoost v1.0.1"
+git push origin v1.0.1
 
-gh release create v1.0.0 `
+gh release create v1.0.1 `
   dist\NukaBoost.exe `
   dist\nukaboostctl.exe `
   dist\NukaBoost.msi `
@@ -91,7 +97,7 @@ gh release create v1.0.0 `
   --draft `
   --verify-tag `
   --generate-notes `
-  --title "NukaBoost v1.0.0"
+  --title "NukaBoost v1.0.1"
 ```
 
 Se você ainda não usa GitHub CLI, crie a tag e depois abra **Releases → Draft

@@ -66,25 +66,28 @@ Embora tenham sido solicitados dois ícones, recomenda-se um terceiro estado par
 
 Tooltips:
 
-- `NukaBoost — Inactive`
-- `NukaBoost — Active`
-- `NukaBoost — Protection error`
+- `NukaBoost: Inactive`
+- `NukaBoost: Active`
+- `NukaBoost: Protection error`
 
 Em português:
 
-- `NukaBoost — Desativado`
-- `NukaBoost — Ativo`
-- `NukaBoost — Erro de proteção`
+- `NukaBoost: Desativado`
+- `NukaBoost: Ativo`
+- `NukaBoost: Erro de proteção`
+
+O ícone permanente do executável, dos atalhos, do Menu Iniciar e da entrada
+em Aplicativos Instalados é sempre `active.ico`. Somente o ícone da área de
+notificações muda entre `inactive.ico`, `active.ico` e `error.ico`, porque
+apenas ele representa o estado operacional atual.
 
 ### Limitação da área de notificações
 
 O Windows não permite que um programa tire automaticamente seu ícone do menu `^` e o fixe ao lado dele. Essa escolha pertence ao usuário. O aplicativo pode emitir uma notificação que torne o ícone temporariamente visível, mas não pode fixá-lo usando APIs oficiais. [Diretrizes oficiais da área de notificações](https://learn.microsoft.com/en-us/windows/win32/uxguide/winenv-notification)
 
-O NukaBoost deve:
-
-- Emitir uma notificação ao ativar/desativar.
-- Informar no About como o usuário pode fixar o ícone manualmente.
-- Nunca modificar configurações internas do Explorer ou registro para forçar isso.
+O NukaBoost deve emitir uma notificação ao ativar/desativar e nunca modificar
+configurações internas do Explorer ou o registro para tentar fixar o ícone.
+O diálogo About não precisa ensinar a alterar essa preferência do Windows.
 
 ### Menu de contexto
 
@@ -93,8 +96,8 @@ Menu em inglês:
 ```text
 Start / Stop
 Language
-    ● EN — English
-    ○ PT — Português
+    ● English (EN)
+    ○ Português (PT)
 About
 ────────────
 Exit
@@ -105,8 +108,8 @@ Menu em português:
 ```text
 Iniciar / Parar
 Idioma
-    ● EN — English
-    ○ PT — Português
+    ● English (EN)
+    ○ Português (PT)
 Sobre
 ────────────
 Fechar
@@ -318,8 +321,9 @@ Inactive
 Procedimento:
 
 1. Obter mutex interno de mudança de estado.
-2. Consultar `PowerSettingAccessCheck`.
-3. Ler o plano original.
+2. Ler o plano original.
+3. Consultar `PowerSettingAccessCheck` com o GUID desse plano e com cada
+   configuração AC/DC que será alterada.
 4. Duplicar o plano.
 5. Configurar o plano temporário.
 6. Ler todos os valores novamente e confirmar.
@@ -646,6 +650,8 @@ Regras de `--startup`:
 - Não ativar por causa de leases antigas.
 
 Deixar o Startup desabilitado por padrão no instalador é a opção mais respeitosa ao usuário.
+Na árvore de recursos do MSI, a opção deve aparecer expandida e imediatamente
+visível, sem exigir que o usuário abra manualmente o item principal.
 
 ## 15. Instalação e desinstalação
 
@@ -657,6 +663,9 @@ Instalação por usuário:
 %LocalAppData%\Programs\NukaBoost\
 ```
 
+O diálogo de seleção de recursos deve mostrar esse caminho completo e permitir
+que o usuário consulte ou altere a pasta antes de instalar.
+
 O MSI deve registrar:
 
 - Nome do produto.
@@ -667,7 +676,14 @@ O MSI deve registrar:
 - Comando de desinstalação.
 - URL opcional.
 - Atalho no menu Iniciar.
+- Pasta de instalação no `PATH` do usuário para acesso ao CLI.
 - Entrada em `Configurações → Aplicativos → Aplicativos instalados`.
+
+Todas as versões devem conservar o mesmo `UpgradeCode`, incrementar um dos
+três campos reconhecidos pelo Windows Installer e receber um novo `ProductCode`.
+O `ProductCode` deve permanecer estável entre rebuilds da mesma versão para que
+o Windows ofereça manutenção em vez de registrar produtos lado a lado. A
+remoção da versão anterior deve ocorrer dentro da transação de upgrade.
 
 O Windows Installer possui suporte próprio para registrar programas em Adicionar/Remover Programas. [Documentação MSI](https://learn.microsoft.com/en-us/windows/win32/msi/configuring-add-remove-programs-with-windows-installer)
 

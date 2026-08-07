@@ -22,7 +22,7 @@ use windows::Win32::UI::WindowsAndMessaging::{
     CreateWindowExW, DefWindowProcW, DispatchMessageW, GetMessageW, GetWindowLongPtrW,
     PostQuitMessage, RegisterClassExW, RegisterWindowMessageW, SetWindowLongPtrW, TranslateMessage,
     CREATESTRUCTW, CS_HREDRAW, CS_VREDRAW, GWLP_USERDATA, HWND_MESSAGE, MSG, WINDOW_EX_STYLE,
-    WM_COMMAND, WM_CONTEXTMENU, WM_DESTROY, WM_ENDSESSION, WM_LBUTTONUP, WM_NCCREATE, WM_NCDESTROY,
+    WM_COMMAND, WM_CONTEXTMENU, WM_DESTROY, WM_ENDSESSION, WM_NCCREATE, WM_NCDESTROY,
     WM_QUERYENDSESSION, WNDCLASSEXW, WS_OVERLAPPED,
 };
 
@@ -210,10 +210,7 @@ unsafe extern "system" fn wndproc(hwnd: HWND, msg: u32, wparam: WPARAM, lparam: 
     match msg {
         WM_NUKABOOST_TRAYICON => {
             let mouse_message = loword(lparam.0 as u32) as u32;
-            if mouse_message == WM_LBUTTONUP
-                || mouse_message == NIN_SELECT
-                || mouse_message == (NIN_SELECT | NINF_KEY)
-            {
+            if is_toggle_notification(mouse_message) {
                 let _ = state.events.send(TrayEvent::ToggleRequested);
             } else if mouse_message == WM_CONTEXTMENU {
                 show_context_menu(hwnd, state);
@@ -308,4 +305,40 @@ fn dispatch_menu_command(state: &WindowState, command: MenuCommand) {
 
 const fn loword(value: u32) -> u16 {
     (value & 0xFFFF) as u16
+}
+
+/// Interpreta somente as notificações canônicas do protocolo v4 da área de
+/// notificação. Depois de `NIM_SETVERSION(NOTIFYICON_VERSION_4)`, o Explorer
+/// envia `NIN_SELECT` para mouse e `NIN_KEYSELECT` para teclado. Tratar também
+/// a mensagem legada `WM_LBUTTONUP` faz um único clique físico produzir dois
+/// toggles em algumas versões do Explorer.
+const fn is_toggle_notification(notification: u32) -> bool {
+    notification == NIN_SELECT || notification == (NIN_SELECT | NINF_KEY)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use windows::Win32::UI::WindowsAndMessaging::WM_LBUTTONUP;
+
+    #[test]
+    fn version_four_selection_messages_toggle_once() {
+        assert!(is_toggle_notification(NIN_SELECT));
+        assert!(is_toggle_notification(NIN_SELECT | NINF_KEY));
+    }
+
+    #[test]
+    fn legacy_mouse_message_is_ignored_to_avoid_a_double_toggle() {
+        assert!(!is_toggle_notification(WM_LBUTTONUP));
+        assert!(!is_toggle_notification(WM_CONTEXTMENU));
+    }
+
+    #[test]
+    fn canonical_and_legacy_pair_dispatches_exactly_one_toggle() {
+        let dispatches = [NIN_SELECT, WM_LBUTTONUP]
+            .into_iter()
+            .filter(|message| is_toggle_notification(*message))
+            .count();
+        assert_eq!(dispatches, 1);
+    }
 }

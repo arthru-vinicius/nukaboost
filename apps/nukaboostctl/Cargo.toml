@@ -1,6 +1,6 @@
 [package]
 name = "nukaboostctl"
-description = "nukaboostctl — CLI de controle e leases do NukaBoost"
+description = "CLI de controle e leases do NukaBoost"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -17,6 +17,7 @@ path = "src/main.rs"
 [dependencies]
 nukaboost-core.workspace = true
 clap.workspace = true
+serde.workspace = true
 serde_json.workspace = true
 uuid.workspace = true
 ctrlc.workspace = true

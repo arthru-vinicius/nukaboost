@@ -11,20 +11,23 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 
-use clap::Parser;
+use serde::Serialize;
 
+use nukaboost_core::config::AppConfig;
 use nukaboost_core::error::NukaError;
+use nukaboost_core::i18n::Language;
 use nukaboost_core::ipc::protocol::{
     Command, Outcome, PowerSource, ProtectionsReport, StatusReport,
 };
 use nukaboost_core::startup;
 
-use cli::{Cli, StartupAction};
+use cli::StartupAction;
 
 fn main() {
-    let cli = Cli::parse();
+    let language = configured_language();
+    let cli = cli::parse(language);
 
-    let exit_code = match run(cli.command) {
+    let exit_code = match run(cli.command, language) {
         Ok(code) => code,
         Err(e) => {
             eprintln!("nukaboostctl: {e}");
@@ -34,7 +37,13 @@ fn main() {
     std::process::exit(exit_code);
 }
 
-fn run(command: cli::Command) -> Result<i32, String> {
+fn configured_language() -> Language {
+    AppConfig::load()
+        .map(|config| config.language)
+        .unwrap_or_default()
+}
+
+fn run(command: cli::Command, language: Language) -> Result<i32, String> {
     let result = match command {
         cli::Command::Status { json } => cmd_status(json),
         cli::Command::Start => cmd_simple(launch::ensure_running_and_send(Command::Start)),
@@ -43,7 +52,7 @@ fn run(command: cli::Command) -> Result<i32, String> {
         cli::Command::Language { language } => cmd_simple(client::send(Command::SetLanguage {
             language: language.into(),
         })),
-        cli::Command::Startup { action } => cmd_startup(action),
+        cli::Command::Startup { action } => cmd_startup(action, language),
         cli::Command::Exit => cmd_exit(),
         cli::Command::Acquire {
             reason,
@@ -105,7 +114,11 @@ fn cmd_status(json: bool) -> Result<(), String> {
     };
 
     if json {
-        let text = serde_json::to_string_pretty(&report).map_err(|e| e.to_string())?;
+        let text = serde_json::to_string_pretty(&StatusJsonOutput {
+            protocol_version: nukaboost_core::ipc::PROTOCOL_VERSION,
+            report: &report,
+        })
+        .map_err(|e| e.to_string())?;
         println!("{text}");
     } else {
         print_status_human(&report);
@@ -113,12 +126,20 @@ fn cmd_status(json: bool) -> Result<(), String> {
     Ok(())
 }
 
+/// Forma pública de `status --json`. A versão pertence ao envelope IPC, mas
+/// é recolocada na raiz da saída do CLI para preservar o contrato documentado.
+#[derive(Serialize)]
+struct StatusJsonOutput<'a> {
+    protocol_version: u32,
+    #[serde(flatten)]
+    report: &'a StatusReport,
+}
+
 /// Relatório sintético usado quando o processo principal não está em
 /// execução — `status --json` continua retornando um objeto válido, com
 /// `process_running: false`, em vez de um erro.
 fn not_running_report() -> StatusReport {
     StatusReport {
-        protocol_version: nukaboost_core::ipc::PROTOCOL_VERSION,
         app_version: env!("CARGO_PKG_VERSION").to_string(),
         process_running: false,
         state: nukaboost_core::state::State::Inactive,
@@ -180,13 +201,21 @@ fn print_status_human(report: &StatusReport) {
     }
 }
 
-fn cmd_startup(action: StartupAction) -> Result<(), String> {
+fn cmd_startup(action: StartupAction, language: Language) -> Result<(), String> {
     match action {
         StartupAction::Enable => startup::enable().map_err(|e| e.to_string()),
         StartupAction::Disable => startup::disable().map_err(|e| e.to_string()),
         StartupAction::Status => {
             let enabled = startup::is_enabled().map_err(|e| e.to_string())?;
-            println!("Startup: {}", if enabled { "enabled" } else { "disabled" });
+            match language {
+                Language::En => {
+                    println!("Startup: {}", if enabled { "enabled" } else { "disabled" })
+                }
+                Language::Pt => println!(
+                    "Inicialização com o Windows: {}",
+                    if enabled { "ativada" } else { "desativada" }
+                ),
+            }
             Ok(())
         }
     }

@@ -1,6 +1,6 @@
 //! Diálogo "About NukaBoost" (seção 3 do plano): ícone, nome, versão,
 //! estado atual, descrição localizada, aviso de que a tela nunca é mantida
-//! ligada, aviso de ventilação e dica de como fixar o ícone na bandeja.
+//! ligada e aviso de ventilação.
 
 use windows::core::HSTRING;
 use windows::Win32::Foundation::{HWND, LPARAM, WPARAM};
@@ -14,8 +14,8 @@ use nukaboost_core::state::State;
 
 use crate::dialogs::set_dlg_text;
 use crate::resource_ids::{
-    IDC_ABOUT_DESC, IDC_ABOUT_PIN_HINT, IDC_ABOUT_SCREEN_NOTE, IDC_ABOUT_STATE, IDC_ABOUT_TITLE,
-    IDC_ABOUT_VENTILATION, IDC_ABOUT_VERSION, IDD_ABOUT,
+    IDC_ABOUT_DESC, IDC_ABOUT_SCREEN_NOTE, IDC_ABOUT_STATE, IDC_ABOUT_TITLE, IDC_ABOUT_VENTILATION,
+    IDC_ABOUT_VERSION, IDD_ABOUT,
 };
 use crate::wide::resource_id;
 
@@ -119,7 +119,6 @@ fn populate(hwnd: HWND, info: &AboutInfo<'_>) {
         IDC_ABOUT_VENTILATION,
         strings.about_ventilation_warning,
     );
-    set_dlg_text(hwnd, IDC_ABOUT_PIN_HINT, strings.about_tray_pin_hint);
     set_dlg_text(hwnd, IDOK.0 as u16, strings.about_close_button);
 }
 

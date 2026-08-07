@@ -1,18 +1,18 @@
-//! Tabela de strings em inglês — idioma padrão da aplicação.
+//! Tabela de strings em inglês. É o idioma padrão da aplicação.
 
 use super::Strings;
 
 /// Instância estática com todos os textos da interface em inglês.
 pub static STRINGS: Strings = Strings {
-    tray_tooltip_inactive: "NukaBoost — Inactive",
-    tray_tooltip_active: "NukaBoost — Active",
-    tray_tooltip_error: "NukaBoost — Protection error",
+    tray_tooltip_inactive: "NukaBoost: Inactive",
+    tray_tooltip_active: "NukaBoost: Active",
+    tray_tooltip_error: "NukaBoost: Protection error",
 
     menu_start: "Start",
     menu_stop: "Stop",
     menu_language: "Language",
-    menu_language_en: "EN — English",
-    menu_language_pt: "PT — Português",
+    menu_language_en: "English (EN)",
+    menu_language_pt: "Português (PT)",
     menu_about: "About",
     menu_exit: "Exit",
 
@@ -20,11 +20,9 @@ pub static STRINGS: Strings = Strings {
     about_version_label: "Version",
     about_state_label: "Current state",
     about_description: "NukaBoost keeps your PC awake for long-running tasks such as builds, \
-downloads, and renders — even with the lid closed.",
+downloads, and renders, even with the lid closed.",
     about_never_keeps_screen_on: "NukaBoost never keeps the screen on.",
     about_ventilation_warning: "Ensure adequate ventilation while active to avoid overheating.",
-    about_tray_pin_hint: "Windows does not let apps pin their own tray icon. Right-click the \
-taskbar, choose \"Taskbar settings\", and enable \"Always show all icons\" to keep NukaBoost visible.",
     about_close_button: "Close",
 
     safety_warning_checkbox: "Do not show this warning again",

@@ -30,9 +30,6 @@ pub const IDC_ABOUT_DESC: u16 = 1004;
 pub const IDC_ABOUT_SCREEN_NOTE: u16 = 1005;
 /// Controle estático do aviso de ventilação.
 pub const IDC_ABOUT_VENTILATION: u16 = 1006;
-/// Controle estático com a dica de como fixar o ícone na bandeja.
-pub const IDC_ABOUT_PIN_HINT: u16 = 1007;
-
 /// Controle estático com o texto do aviso em inglês (sempre presente).
 pub const IDC_WARNING_TEXT_EN: u16 = 1101;
 /// Controle estático com o texto do aviso em português (sempre presente).
@@ -42,9 +39,9 @@ pub const IDC_WARNING_CHECKBOX: u16 = 1103;
 
 /// Item de menu Start/Stop (rótulo dinâmico conforme o estado atual).
 pub const ID_TRAY_START_STOP: u16 = 2001;
-/// Item de menu "EN — English".
+/// Item de menu "English (EN)".
 pub const ID_TRAY_LANG_EN: u16 = 2002;
-/// Item de menu "PT — Português".
+/// Item de menu "Português (PT)".
 pub const ID_TRAY_LANG_PT: u16 = 2003;
 /// Item de menu About/Sobre.
 pub const ID_TRAY_ABOUT: u16 = 2004;

@@ -18,12 +18,16 @@
 
   <Package Name="NukaBoost"
            Manufacturer="Arthur Vinicius"
-           Version="1.0.0"
+           Version="1.0.1"
+           ProductCode="D3736C6B-E0EA-466D-80DD-A44C14696FC7"
            UpgradeCode="9BA517E2-95B7-4E70-B5B0-1941905EF77B"
            Scope="perUser"
            Compressed="yes">
 
-    <MajorUpgrade DowngradeErrorMessage="A newer version of NukaBoost is already installed." />
+    <!-- UpgradeCode stays stable across releases; ProductCode changes once
+         per version and remains stable across rebuilds of that version. -->
+    <MajorUpgrade Schedule="afterInstallInitialize"
+                  DowngradeErrorMessage="A newer version of NukaBoost is already installed." />
     <MediaTemplate EmbedCab="yes" />
 
     <Property Id="ARPPRODUCTICON" Value="NukaBoostIcon" />
@@ -64,6 +68,17 @@
             <RegistryValue Root="HKCU" Key="Software\NukaBoost\Components"
                            Name="InstallFolders" Type="integer" Value="1" KeyPath="yes" />
           </Component>
+          <Component Id="CommandLinePath" Guid="91FF5D88-1FA5-40C9-A9CD-931D9EF7E551">
+            <Environment Id="AddInstallFolderToUserPath"
+                         Name="PATH"
+                         Value="[INSTALLFOLDER]"
+                         Action="set"
+                         Part="last"
+                         Permanent="no"
+                         System="no" />
+            <RegistryValue Root="HKCU" Key="Software\NukaBoost\Components"
+                           Name="CommandLinePath" Type="integer" Value="1" KeyPath="yes" />
+          </Component>
         </Directory>
       </Directory>
 
@@ -84,6 +99,7 @@
                     Name="NukaBoost"
                     Description="Keep Windows awake during long-running tasks"
                     Target="[INSTALLFOLDER]NukaBoost.exe"
+                    Icon="NukaBoostIcon"
                     WorkingDirectory="INSTALLFOLDER" />
           <RemoveFolder Id="RemoveNukaBoostProgramMenuFolder" On="uninstall" />
           <RegistryValue Root="HKCU" Key="Software\NukaBoost\Components"
@@ -98,6 +114,7 @@
                   Name="NukaBoost"
                   Target="[INSTALLFOLDER]NukaBoost.exe"
                   Arguments="--startup"
+                  Icon="NukaBoostIcon"
                   WorkingDirectory="INSTALLFOLDER" />
         <RegistryValue Root="HKCU" Key="Software\NukaBoost\Components"
                        Name="StartupShortcut" Type="integer" Value="1" KeyPath="yes" />
@@ -129,20 +146,29 @@
     </InstallExecuteSequence>
 
     <Feature Id="MainFeature" Title="NukaBoost" Level="1"
-             Description="Core application and command-line utility">
+             Description="Tray application and command-line utility. Select this item to view or change the installation folder."
+             Display="expand"
+             ConfigurableDirectory="INSTALLFOLDER"
+             AllowAbsent="no"
+             AllowAdvertise="no"
+             InstallDefault="local">
       <ComponentRef Id="MainExecutable" />
       <ComponentRef Id="CtlExecutable" />
       <ComponentRef Id="InstallFolderCleanup" />
+      <ComponentRef Id="CommandLinePath" />
       <ComponentRef Id="StartMenuShortcut" />
       <ComponentRef Id="RemoveAppData" />
-      <!-- Level 2 is visible but not selected at the default INSTALLLEVEL
-           of 1. WixUI_FeatureTree lets the user opt in interactively. -->
-      <Feature Id="StartupFeature" Title="Start with Windows" Level="2"
-               Description="Launch NukaBoost at user sign-in (starts inactive)">
+      <!-- The parent feature starts expanded so this opt-in is immediately
+           visible. Level 2 keeps it disabled for a default Next/Next install. -->
+      <Feature Id="StartupFeature" Title="Start NukaBoost with Windows (optional)" Level="2"
+               Description="Launch NukaBoost at user sign-in. The application always starts inactive."
+               AllowAdvertise="no"
+               InstallDefault="local">
         <ComponentRef Id="StartupShortcut" />
       </Feature>
     </Feature>
 
     <ui:WixUI Id="WixUI_FeatureTree" />
+    <WixVariable Id="WixUILicenseRtf" Value="installer\NukaBoost-License.rtf" />
   </Package>
 </Wix>

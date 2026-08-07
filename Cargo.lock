@@ -378,7 +378,7 @@ dependencies = [
 
 [[package]]
 name = "nukaboost"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "embed-resource",
  "nukaboost-core",
@@ -393,7 +393,7 @@ dependencies = [
 
 [[package]]
 name = "nukaboost-core"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "serde",
  "serde_json",
@@ -407,7 +407,7 @@ dependencies = [
 
 [[package]]
 name = "nukaboost-win32"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "nukaboost-core",
  "tracing",
@@ -416,12 +416,13 @@ dependencies = [
 
 [[package]]
 name = "nukaboostctl"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "clap",
  "ctrlc",
  "embed-resource",
  "nukaboost-core",
+ "serde",
  "serde_json",
  "uuid",
 ]

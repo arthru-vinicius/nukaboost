@@ -5,8 +5,8 @@
 1 24 "nukaboostctl.manifest"
 
 1 VERSIONINFO
-FILEVERSION     1,0,0,0
-PRODUCTVERSION  1,0,0,0
+FILEVERSION     1,0,1,0
+PRODUCTVERSION  1,0,1,0
 FILEFLAGSMASK   0x3fL
 FILEFLAGS       0x0L
 FILEOS          0x40004L
@@ -19,12 +19,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName",      "Arthur Vinicius"
             VALUE "FileDescription",  "NukaBoost command-line control and lease utility"
-            VALUE "FileVersion",      "1.0.0.0"
+            VALUE "FileVersion",      "1.0.1.0"
             VALUE "InternalName",     "nukaboostctl"
             VALUE "LegalCopyright",   "Copyright (C) 2026 Arthur Vinicius"
             VALUE "OriginalFilename", "nukaboostctl.exe"
             VALUE "ProductName",      "NukaBoost"
-            VALUE "ProductVersion",   "1.0.0.0"
+            VALUE "ProductVersion",   "1.0.1.0"
         END
     END
     BLOCK "VarFileInfo"

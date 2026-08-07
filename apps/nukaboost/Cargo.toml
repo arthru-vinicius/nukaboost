@@ -1,6 +1,6 @@
 [package]
 name = "nukaboost"
-description = "NukaBoost — utilitário de bandeja que impede a suspensão do Windows"
+description = "Utilitário de bandeja que impede a suspensão do Windows"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
