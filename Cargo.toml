@@ -1,0 +1,55 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/nukaboost-core",
+    "crates/nukaboost-win32",
+    "apps/nukaboost",
+    "apps/nukaboostctl",
+]
+
+# Compilamos exclusivamente para Windows; o utilitário depende de APIs Win32
+# que não existem em outras plataformas.
+default-members = [
+    "crates/nukaboost-core",
+    "crates/nukaboost-win32",
+    "apps/nukaboost",
+    "apps/nukaboostctl",
+]
+
+[workspace.package]
+version = "1.0.0"
+edition = "2021"
+rust-version = "1.82"
+authors = ["NukaBoost"]
+license = "MIT"
+repository = "https://github.com/arthru-vinicius/nukaboost"
+publish = false
+
+[workspace.dependencies]
+nukaboost-core = { path = "crates/nukaboost-core" }
+nukaboost-win32 = { path = "crates/nukaboost-win32" }
+
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "2.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "time"] }
+tracing-appender = "0.2"
+uuid = { version = "1.24", features = ["v4", "serde"] }
+clap = { version = "4.6", features = ["derive"] }
+embed-resource = "3.0"
+time = { version = "0.3", features = ["formatting", "parsing"] }
+ctrlc = "3.5"
+
+# `windows-sys` seria mais leve, mas a API de alto nível (Result, HSTRING,
+# COM) da crate `windows` reduz drasticamente o código `unsafe` necessário
+# para envolver chamadas Win32 — troca deliberada de tamanho de binário por
+# segurança e legibilidade neste projeto.
+windows = "0.62"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

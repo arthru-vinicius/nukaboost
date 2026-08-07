@@ -1,0 +1,110 @@
+# Definição da skill "manage-nukaboost" para agentes baseados em OpenAI
+# (por exemplo, Codex), equivalente ao conteúdo de ../SKILL.md em formato
+# YAML. Nenhum script é necessário: `nukaboostctl` já é a interface
+# determinística — este arquivo apenas descreve quando e como usá-la.
+
+name: manage-nukaboost
+description: >-
+  Mantém o Windows acordado durante uma tarefa longa (compilação,
+  renderização, download, migração ou teste prolongado) adquirindo uma
+  lease do NukaBoost antes da tarefa e liberando-a ao final, sem nunca
+  desativar a retenção manual do usuário.
+
+trigger: >-
+  Use quando uma compilação, renderização, download, migração ou teste
+  prolongado não puder ser interrompido pela suspensão do Windows. Não use
+  para tarefas rápidas (segundos) — o custo de gerenciar uma lease não
+  compensa.
+
+cli: nukaboostctl
+
+rules:
+  - Nunca execute "nukaboostctl stop" ou "nukaboostctl stop --force". O
+    comando --force cancela leases de todos os donos, não só as do agente,
+    e pode desligar uma proteção da qual outro processo ainda depende. A
+    prioridade de parar o NukaBoost é sempre humana (clique manual no
+    ícone ou Stop/Parar no menu).
+  - Nunca desative a retenção manual do usuário (manual_hold). O agente só
+    controla a lease que ele mesmo criou.
+  - Sempre libere exatamente a lease adquirida, mesmo se a tarefa falhar
+    ou for cancelada — trate a liberação como um bloco "finally".
+  - Se a ativação falhar (por exemplo, código safety_ack_required ou
+    policy_denied), não inicie a tarefa crítica.
+  - Chaves e valores de "status --json" nunca são localizados (sempre em
+    inglês), independentemente do idioma configurado na interface gráfica
+    do usuário — é seguro decidir programaticamente sobre eles.
+
+procedure:
+  - step: 1
+    action: Consultar o estado atual.
+    command: nukaboostctl status --json
+
+  - step: 2
+    action: >-
+      Para uma única operação simples, preferir o comando composto, que já
+      implementa os passos 3 a 8 de forma atômica: adquire uma lease,
+      confirma que o estado é active, executa o comando informado, e
+      libera a lease ao final — inclusive se o comando falhar ou receber
+      Ctrl+C. O código de saída retornado é o mesmo do comando filho. Os
+      passos manuais abaixo só são necessários para orquestrar várias
+      etapas em torno da mesma lease.
+    command: "nukaboostctl run -- <comando>"
+
+  - step: 3
+    action: >-
+      Para uma tarefa com várias etapas, adquirir uma lease com TTL
+      explícito. Nunca omitir --ttl; superestimar moderadamente a duração
+      esperada da tarefa. Guardar o lease_id retornado — é necessário no
+      passo 7.
+    command: >-
+      nukaboostctl acquire --reason "<motivo>" --owner "<nome-do-agente>"
+      --ttl 2h --json
+
+  - step: 4
+    action: >-
+      Confirmar que "state" é "active" na resposta de status --json (a
+      ativação é automática ao adquirir uma lease). Se não estiver ativo,
+      parar aqui.
+
+  - step: 5
+    action: >-
+      Confirmar que o objeto "protections" não contém nenhum valor false
+      relevante. Se alguma proteção estiver incompleta, tratar como falha
+      de ativação — não prosseguir.
+
+  - step: 6
+    action: Executar a tarefa normalmente.
+
+  - step: 7
+    action: >-
+      Liberar somente a lease criada neste procedimento, em uma etapa
+      equivalente a "finally" (sempre executada, mesmo em caso de erro).
+    command: "nukaboostctl release <lease-id>"
+
+  - step: 8
+    action: >-
+      Confirmar a liberação: a resposta deve indicar sucesso
+      (lease_released). Se falhar, registrar o problema — não tentar
+      compensar chamando stop.
+
+error_codes:
+  safety_ack_required:
+    meaning: O usuário ainda não confirmou o aviso de segurança inicial.
+    agent_action: >-
+      Não prosseguir; informar o usuário que ele precisa abrir o NukaBoost
+      uma vez e confirmar o aviso.
+  policy_denied:
+    meaning: >-
+      Uma política administrativa (Group Policy/MDM) bloqueia a alteração
+      do plano de energia.
+    agent_action: Não prosseguir; a máquina não pode oferecer a garantia.
+  protection_not_confirmed:
+    meaning: Uma proteção foi aplicada mas não confirmada por releitura.
+    agent_action: Não prosseguir; tratar como falha de ativação.
+  lease_not_found:
+    meaning: >-
+      A lease informada em "release" já não existe (expirou ou foi
+      liberada).
+    agent_action: >-
+      Não é necessariamente fatal — a lease já não está em vigor;
+      prosseguir sem repetir a liberação.

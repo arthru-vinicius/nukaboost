@@ -1,0 +1,134 @@
+// Recursos Win32 do NukaBoost: ícones de estado, informações de versão,
+// manifesto e os diálogos nativos (About e aviso de segurança).
+//
+// Compilado a partir de `apps/nukaboost/build.rs` via `embed-resource`
+// (veja o comentário ali sobre por que a compilação não acontece neste
+// crate, mesmo os arquivos vivendo aqui). Ao alterar qualquer ID abaixo,
+// altere também `src/resource_ids.rs` — os dois arquivos precisam
+// permanecer sincronizados manualmente.
+
+#pragma code_page(65001) // UTF-8
+
+// `winres.h` (não `windows.h`) é o cabeçalho padrão para arquivos .rc
+// somente de recursos: define os estilos (WS_*, DS_*, BS_*, SS_*, MF_*)
+// sem puxar todo o restante do SDK.
+#include <winres.h>
+
+// ---------------------------------------------------------------------
+// IDs — mantidos em sincronia manual com src/resource_ids.rs
+// ---------------------------------------------------------------------
+
+#define IDI_INACTIVE            101
+#define IDI_ACTIVE               102
+#define IDI_ERROR                103
+
+#define IDD_ABOUT                201
+#define IDD_SAFETY_WARNING       202
+
+#define IDC_ABOUT_TITLE          1001
+#define IDC_ABOUT_VERSION        1002
+#define IDC_ABOUT_STATE          1003
+#define IDC_ABOUT_DESC           1004
+#define IDC_ABOUT_SCREEN_NOTE    1005
+#define IDC_ABOUT_VENTILATION    1006
+#define IDC_ABOUT_PIN_HINT       1007
+
+#define IDC_WARNING_TEXT_EN      1101
+#define IDC_WARNING_TEXT_PT      1102
+#define IDC_WARNING_CHECKBOX     1103
+
+// Convenção padrão do compilador de recursos: -1 identifica controles
+// puramente decorativos que o código Rust nunca precisa referenciar
+// individualmente (o próprio ícone do diálogo About, por exemplo).
+#define IDC_STATIC               -1
+
+// ---------------------------------------------------------------------
+// Ícones de estado (seção 3 do plano)
+// ---------------------------------------------------------------------
+
+IDI_INACTIVE ICON "../../../assets/inactive.ico"
+IDI_ACTIVE   ICON "../../../assets/active.ico"
+IDI_ERROR    ICON "../../../assets/error.ico"
+
+// ---------------------------------------------------------------------
+// Manifesto da aplicação (Common Controls v6, DPI, asInvoker)
+// ---------------------------------------------------------------------
+
+1 24 "nukaboost.manifest"
+
+// ---------------------------------------------------------------------
+// Informações de versão do executável
+// ---------------------------------------------------------------------
+
+1 VERSIONINFO
+FILEVERSION     1,0,0,0
+PRODUCTVERSION  1,0,0,0
+FILEFLAGSMASK   0x3fL
+FILEFLAGS       0x0L
+FILEOS          0x40004L
+FILETYPE        0x1L
+FILESUBTYPE     0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0"
+        BEGIN
+            VALUE "CompanyName",      "Arthur Vinicius"
+            VALUE "FileDescription",  "NukaBoost - prevents Windows from sleeping during long tasks"
+            VALUE "FileVersion",      "1.0.0.0"
+            VALUE "InternalName",     "NukaBoost"
+            VALUE "LegalCopyright",   "Copyright (C) 2026 Arthur Vinicius"
+            VALUE "OriginalFilename", "NukaBoost.exe"
+            VALUE "ProductName",      "NukaBoost"
+            VALUE "ProductVersion",   "1.0.0.0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END
+
+// ---------------------------------------------------------------------
+// Diálogo "About NukaBoost" (seção 3 do plano)
+//
+// Todo o texto visível é preenchido em tempo de execução por
+// crates/nukaboost-win32/src/dialogs/about.rs via SetWindowTextW — os
+// literais abaixo são apenas placeholders de layout, nunca exibidos.
+// ---------------------------------------------------------------------
+
+IDD_ABOUT DIALOGEX 0, 0, 260, 210
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About NukaBoost"
+FONT 9, "Segoe UI"
+BEGIN
+    ICON            IDI_ACTIVE,           IDC_STATIC,           10,  10, 20, 20
+    LTEXT           "NukaBoost",          IDC_ABOUT_TITLE,      40,  10, 210, 10, SS_NOPREFIX
+    LTEXT           "Version",            IDC_ABOUT_VERSION,    40,  24, 210, 10
+    LTEXT           "State",              IDC_ABOUT_STATE,      40,  38, 210, 10
+    LTEXT           "",                   IDC_ABOUT_DESC,       10,  56, 240, 26, SS_LEFT
+    LTEXT           "",                   IDC_ABOUT_SCREEN_NOTE,10,  85, 240, 18, SS_LEFT
+    LTEXT           "",                   IDC_ABOUT_VENTILATION,10, 105, 240, 18, SS_LEFT
+    LTEXT           "",                   IDC_ABOUT_PIN_HINT,   10, 125, 240, 44, SS_LEFT
+    DEFPUSHBUTTON   "Close",              IDOK,                 200, 188, 50, 14
+END
+
+// ---------------------------------------------------------------------
+// Diálogo do aviso de segurança inicial (seção 4 do plano)
+//
+// O texto bilíngue (EN + PT) e os rótulos localizados são preenchidos em
+// tempo de execução por
+// crates/nukaboost-win32/src/dialogs/warning.rs.
+// ---------------------------------------------------------------------
+
+IDD_SAFETY_WARNING DIALOGEX 0, 0, 280, 165
+STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "NukaBoost - Safety warning"
+FONT 9, "Segoe UI"
+BEGIN
+    LTEXT           "", IDC_WARNING_TEXT_EN,       10,  10, 260, 42, SS_LEFT
+    LTEXT           "", IDC_WARNING_TEXT_PT,       10,  56, 260, 42, SS_LEFT
+    CONTROL         "Do not show this warning again", IDC_WARNING_CHECKBOX, "Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,  10, 104, 260, 12
+    DEFPUSHBUTTON   "OK",                IDOK,     220, 142, 50, 14
+END

@@ -1,0 +1,25 @@
+[package]
+name = "nukaboostctl"
+description = "nukaboostctl — CLI de controle e leases do NukaBoost"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+build = "build.rs"
+
+[[bin]]
+name = "nukaboostctl"
+path = "src/main.rs"
+
+[dependencies]
+nukaboost-core.workspace = true
+clap.workspace = true
+serde_json.workspace = true
+uuid.workspace = true
+ctrlc.workspace = true
+
+[build-dependencies]
+embed-resource.workspace = true

@@ -1,0 +1,30 @@
+[package]
+name = "nukaboost-win32"
+description = "Bandeja do sistema, diálogos nativos e recursos Win32 do NukaBoost"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+# Sem `build.rs` neste crate: o Cargo só embute recursos Win32 (ícones,
+# manifest, diálogos) no binário final quando `embed_resource::compile` roda
+# no `build.rs` de um crate com alvos `[[bin]]` — este crate é uma
+# biblioteca pura. O `.rc` continua fisicamente aqui (`resources/`), mas
+# quem o compila é `apps/nukaboost/build.rs`.
+[dependencies]
+nukaboost-core.workspace = true
+tracing.workspace = true
+
+[dependencies.windows]
+workspace = true
+features = [
+    "Win32_Foundation",
+    "Win32_Graphics_Gdi",
+    "Win32_System_LibraryLoader",
+    "Win32_UI_Controls",
+    "Win32_UI_Shell",
+    "Win32_UI_WindowsAndMessaging",
+]

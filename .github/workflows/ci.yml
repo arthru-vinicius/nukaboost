@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    name: Rust and MSI validation
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Show pinned Rust toolchain
+        run: rustup show active-toolchain
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      - name: Run tests
+        run: cargo test --workspace --locked
+
+      - name: Run Clippy
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+
+      - name: Audit dependencies with RustSec
+        shell: pwsh
+        run: |
+          if (-not (Get-Command cargo-audit -ErrorAction SilentlyContinue)) {
+            cargo install cargo-audit --version 0.22.2 --locked
+          }
+          cargo audit --file Cargo.lock
+
+      - name: Build release binaries
+        run: cargo build --workspace --release --locked
+
+      - name: Install WiX Toolset 7
+        shell: pwsh
+        run: |
+          dotnet tool install --global wix --version 7.0.0
+          wix extension add -g WixToolset.UI.wixext/7.0.0
+          wix extension add -g WixToolset.Util.wixext/7.0.0
+
+      - name: Build MSI
+        shell: pwsh
+        run: |
+          wix build installer\NukaBoost.wxs -arch x64 `
+            -b assets=assets -b release=target\release `
+            -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext `
+            -out installer\NukaBoost.msi
+
+      - name: Validate MSI
+        run: wix msi validate -sice ICE91 installer\NukaBoost.msi
+
+      - name: Collect unsigned test artifact
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path dist | Out-Null
+          Copy-Item target\release\NukaBoost.exe, `
+                    target\release\nukaboostctl.exe, `
+                    installer\NukaBoost.msi -Destination dist
+          Get-FileHash dist\* -Algorithm SHA256 |
+            ForEach-Object { "$($_.Hash.ToLowerInvariant())  $([IO.Path]::GetFileName($_.Path))" } |
+            Set-Content dist\SHA256SUMS.txt -Encoding ascii
+
+      - name: Upload unsigned test artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: NukaBoost-unsigned-ci-${{ github.sha }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7
