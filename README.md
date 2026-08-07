@@ -110,6 +110,7 @@ instala em `%LocalAppData%`; todas as demais regras ICE continuam ativas.
 ## Documentação
 
 - [Plano do produto](docs/plano.md)
+- [Plano de portabilidade para macOS e Linux](docs/plano-macos-linux.md)
 - [Release e assinatura](docs/RELEASE.md)
 - [Política de assinatura de código](CODE_SIGNING_POLICY.md)
 - [Política de segurança](SECURITY.md)
