@@ -30,6 +30,8 @@ pub const IDC_ABOUT_DESC: u16 = 1004;
 pub const IDC_ABOUT_SCREEN_NOTE: u16 = 1005;
 /// Controle estático do aviso de ventilação.
 pub const IDC_ABOUT_VENTILATION: u16 = 1006;
+/// Controle estático do aviso contra encerramento forçado do processo.
+pub const IDC_ABOUT_TERMINATION: u16 = 1007;
 /// Controle estático com o texto do aviso em inglês (sempre presente).
 pub const IDC_WARNING_TEXT_EN: u16 = 1101;
 /// Controle estático com o texto do aviso em português (sempre presente).

@@ -24,6 +24,10 @@ compilações, downloads e renderizações, mesmo com a tampa fechada.",
     about_never_keeps_screen_on: "O NukaBoost nunca mantém a tela ligada.",
     about_ventilation_warning: "Garanta ventilação adequada enquanto estiver ativo para evitar \
 aquecimento excessivo.",
+    about_termination_warning:
+        "Não encerre o NukaBoost à força (Gerenciador de Tarefas, taskkill, \
+um agente automatizado): isso pode deixar as configurações de suspensão desativadas. Use \
+'nukaboostctl stop' em vez disso.",
     about_close_button: "Fechar",
 
     safety_warning_checkbox: "Não mostrar este aviso novamente",

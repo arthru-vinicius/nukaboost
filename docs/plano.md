@@ -166,6 +166,21 @@ Regras:
 - Se o CLI tentar ativar enquanto o aviso aguarda confirmação, retornar `safety_ack_required`.
 - Não oferecer parâmetro silencioso para ignorar o primeiro aviso.
 
+### Encerramento fora do controle do aplicativo
+
+Mesmo diálogo, texto adicional exibido abaixo do aviso de tampa/ventilação,
+sempre bilíngue igualmente:
+
+> **EN:** Force-closing NukaBoost (Task Manager, taskkill, or an automated agent) instead of stopping it normally can leave the lid/sleep override in place. A watchdog process usually restores your original settings within seconds; if that also fails, NukaBoost self-heals at your next sign-in. Prefer 'nukaboostctl stop' or the tray menu to deactivate.
+>
+> **PT:** Encerrar o NukaBoost à força (Gerenciador de Tarefas, taskkill, ou um agente automatizado) em vez de pará-lo normalmente pode deixar a substituição de tampa/suspensão ativa. Um processo watchdog costuma restaurar as configurações originais em segundos; se isso também falhar, o NukaBoost se autocorrige no próximo login. Prefira 'nukaboostctl stop' ou o menu da bandeja para desativar.
+
+Mesmo aviso, resumido, também no diálogo `About`/`Sobre` (seção 3) no idioma
+da interface, e como `FileDescription` dos dois executáveis (seção 5), para
+que fique visível no Gerenciador de Tarefas, `tasklist /v` e
+`Get-Process | Select Description` antes de qualquer encerramento manual ou
+automatizado.
+
 ## 5. Arquitetura recomendada
 
 Usar um workspace Rust:
@@ -429,6 +444,12 @@ Assim:
 - Se o computador for desligado abruptamente, a restauração ocorre no próximo logon.
 - `--recover-only` nunca inicia o modo ativo.
 - Após recuperar, o processo encerra sem criar ícone.
+
+O nome do valor `RunOnce` deve ser prefixado com `!` (`!NukaBoostRecovery`).
+Por padrão o Windows apaga uma entrada `RunOnce` antes de executar o comando;
+o prefixo `!` adia essa exclusão até depois da execução, então uma falha
+transitória em `--recover-only` não perde a única chance de recuperação — a
+tentativa se repete a cada logon seguinte até sair com sucesso (código 0).
 
 Também tratar:
 

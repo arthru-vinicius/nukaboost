@@ -23,6 +23,9 @@ pub static STRINGS: Strings = Strings {
 downloads, and renders, even with the lid closed.",
     about_never_keeps_screen_on: "NukaBoost never keeps the screen on.",
     about_ventilation_warning: "Ensure adequate ventilation while active to avoid overheating.",
+    about_termination_warning:
+        "Do not force-close NukaBoost (Task Manager, taskkill, an automated \
+agent): it can leave sleep settings overridden. Use 'nukaboostctl stop' instead.",
     about_close_button: "Close",
 
     safety_warning_checkbox: "Do not show this warning again",

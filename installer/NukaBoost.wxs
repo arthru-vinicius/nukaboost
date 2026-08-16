@@ -54,6 +54,13 @@
                files live under the user profile (ICE38). -->
           <Component Id="MainExecutable" Guid="5E1777D0-F69B-4BAC-B21A-504ADE7C04EE">
             <File Id="NukaBoostExe" Source="!(bindpath.release)\NukaBoost.exe" />
+            <!-- NukaBoostWatchdog.exe is not installed here: it is a
+                 same-bytes copy the app writes next to NukaBoost.exe at
+                 runtime (apps/nukaboost/src/watchdog.rs), so that killing
+                 the main process by image name doesn't take the watchdog
+                 down with it. RemoveFile cleans up that untracked copy on
+                 uninstall. -->
+            <RemoveFile Id="RemoveWatchdogCopy" Name="NukaBoostWatchdog.exe" On="uninstall" />
             <RegistryValue Root="HKCU" Key="Software\NukaBoost\Components"
                            Name="MainExecutable" Type="integer" Value="1" KeyPath="yes" />
           </Component>
@@ -170,5 +177,14 @@
 
     <ui:WixUI Id="WixUI_FeatureTree" />
     <WixVariable Id="WixUILicenseRtf" Value="installer\NukaBoost-License.rtf" />
+    <!-- Shown on the shared ExitDialog fragment used by every built-in
+         WixUI set, including FeatureTree (control "OptionalText", visible
+         only on a fresh install, never on repair/maintenance; see
+         https://github.com/wixtoolset/wix/blob/main/src/ext/UI/wixlib/ExitDialog.wxs).
+         Mirrors the "Encerramento fora do controle do aplicativo" warning
+         in docs/plano.md section 4, the safety-warning dialog, About, and
+         the FileDescription of both executables. -->
+    <Property Id="WIXUI_EXITDIALOGOPTIONALTEXT"
+              Value="NukaBoost keeps Windows awake while active. To turn it off safely, use the tray menu or 'nukaboostctl stop' -- do not force-close it from Task Manager, as that can leave sleep settings overridden until your next sign-in." />
   </Package>
 </Wix>

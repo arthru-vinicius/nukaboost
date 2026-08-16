@@ -99,6 +99,7 @@ pub struct Strings {
     pub about_description: &'static str,
     pub about_never_keeps_screen_on: &'static str,
     pub about_ventilation_warning: &'static str,
+    pub about_termination_warning: &'static str,
     pub about_close_button: &'static str,
 
     // Aviso de segurança (controles; o corpo do texto é sempre bilíngue).
@@ -137,6 +138,28 @@ Heavy workloads can cause excessive heat, battery drain, or thermal shutdown.";
 pub const SAFETY_WARNING_PT: &str = "O NukaBoost pode manter o notebook funcionando com a tampa fechada. \
 Nunca coloque o notebook dentro de uma mochila, capa ou espaço sem ventilação enquanto ele estiver ativo. \
 Cargas intensas podem causar aquecimento excessivo, consumo da bateria ou desligamento térmico.";
+
+/// Aviso sobre encerramento fora do controle do aplicativo (Gerenciador de
+/// Tarefas, `taskkill`, um agente automatizado), em inglês.
+///
+/// Reproduzido literalmente da subseção "Encerramento fora do controle do
+/// aplicativo" (seção 4 do plano do produto) — não deve ser reescrito,
+/// apenas exibido. Exibido junto de [`SAFETY_WARNING_EN`] no diálogo
+/// inicial; uma versão resumida também aparece no diálogo `About`
+/// ([`Strings::about_termination_warning`]).
+pub const TERMINATION_WARNING_EN: &str = "Force-closing NukaBoost (Task Manager, taskkill, or an automated agent) \
+instead of stopping it normally can leave the lid/sleep override in place. A watchdog process usually restores \
+your original settings within seconds; if that also fails, NukaBoost self-heals at your next sign-in. \
+Prefer 'nukaboostctl stop' or the tray menu to deactivate.";
+
+/// Aviso sobre encerramento fora do controle do aplicativo, em português.
+///
+/// Reproduzido literalmente da mesma subseção do plano do produto — não
+/// deve ser reescrito, apenas exibido. Ver [`TERMINATION_WARNING_EN`].
+pub const TERMINATION_WARNING_PT: &str = "Encerrar o NukaBoost à força (Gerenciador de Tarefas, taskkill, ou um \
+agente automatizado) em vez de pará-lo normalmente pode deixar a substituição de tampa/suspensão ativa. Um \
+processo watchdog costuma restaurar as configurações originais em segundos; se isso também falhar, o NukaBoost \
+se autocorrige no próximo login. Prefira 'nukaboostctl stop' ou o menu da bandeja para desativar.";
 
 #[cfg(test)]
 mod tests {

@@ -5,9 +5,22 @@
 //! `NukaBoost.exe --recover-only <session-id>` no próximo logon caso o
 //! Windows tenha sido desligado ou reiniciado abruptamente antes de o
 //! NukaBoost se desarmar normalmente. `RunOnce` é removida pelo próprio
-//! Windows depois de executada uma vez, então não precisamos limpá-la no
+//! Windows antes de executar o comando, então não precisamos limpá-la no
 //! caminho de recuperação — apenas no caminho de desativação normal
 //! (seção 8, passo 11).
+//!
+//! O nome do valor é prefixado com `!` deliberadamente: por padrão o
+//! Windows apaga uma entrada `RunOnce` **antes** de rodar o comando, então
+//! uma falha transitória em `--recover-only` (por exemplo, o plano original
+//! ter sido bloqueado por política nesse exato boot) perderia a única
+//! tentativa de recuperação para sempre — exatamente o cenário relatado de
+//! tampa desconfigurada que sobrevive a reinicializações mesmo sem o
+//! NukaBoost em execução. O prefixo `!` adia a exclusão até depois de o
+//! comando rodar, então o Windows só remove a entrada quando
+//! `--recover-only` sai com sucesso (código 0); enquanto ele continuar
+//! falhando, a recuperação é tentada de novo em todo logon subsequente.
+//! Comportamento documentado em
+//! <https://learn.microsoft.com/en-us/windows/win32/setupapi/run-and-runonce-registry-keys>.
 
 use uuid::Uuid;
 use windows::core::{w, PCWSTR};
@@ -21,7 +34,8 @@ use crate::error::{NukaError, NukaResult};
 
 const RUNONCE_SUBKEY: windows::core::PCWSTR =
     w!(r"Software\Microsoft\Windows\CurrentVersion\RunOnce");
-const RUNONCE_VALUE_NAME: windows::core::PCWSTR = w!("NukaBoostRecovery");
+/// Prefixo `!` = adiar a exclusão até depois da execução (ver doc do módulo).
+const RUNONCE_VALUE_NAME: windows::core::PCWSTR = w!("!NukaBoostRecovery");
 
 /// Registra a recuperação de emergência para a sessão `session_id`.
 pub fn register(session_id: Uuid) -> NukaResult<()> {
@@ -110,5 +124,20 @@ fn check(code: WIN32_ERROR, function: &'static str) -> NukaResult<()> {
         Ok(())
     } else {
         Err(NukaError::from_win32_code(function, code))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Trava a regressão mais fácil de cometer aqui: perder o prefixo `!`
+    /// de novo faz uma falha silenciosa em `--recover-only` nunca mais ser
+    /// tentada (ver doc do módulo).
+    #[test]
+    fn value_name_keeps_the_deferred_deletion_prefix() {
+        let decoded = unsafe { RUNONCE_VALUE_NAME.to_string() }.unwrap();
+        assert!(decoded.starts_with('!'));
+        assert_eq!(decoded, "!NukaBoostRecovery");
     }
 }

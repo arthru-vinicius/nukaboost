@@ -14,7 +14,9 @@ use windows::Win32::UI::WindowsAndMessaging::{
     IDOK, WM_CLOSE, WM_COMMAND, WM_INITDIALOG,
 };
 
-use nukaboost_core::i18n::{Language, SAFETY_WARNING_EN, SAFETY_WARNING_PT};
+use nukaboost_core::i18n::{
+    Language, SAFETY_WARNING_EN, SAFETY_WARNING_PT, TERMINATION_WARNING_EN, TERMINATION_WARNING_PT,
+};
 
 use crate::dialogs::set_dlg_text;
 use crate::resource_ids::{
@@ -130,8 +132,16 @@ unsafe extern "system" fn warning_dlgproc(
 }
 
 fn populate(hwnd: HWND, language: Language) {
-    set_dlg_text(hwnd, IDC_WARNING_TEXT_EN, SAFETY_WARNING_EN);
-    set_dlg_text(hwnd, IDC_WARNING_TEXT_PT, SAFETY_WARNING_PT);
+    set_dlg_text(
+        hwnd,
+        IDC_WARNING_TEXT_EN,
+        &format!("{SAFETY_WARNING_EN}\r\n\r\n{TERMINATION_WARNING_EN}"),
+    );
+    set_dlg_text(
+        hwnd,
+        IDC_WARNING_TEXT_PT,
+        &format!("{SAFETY_WARNING_PT}\r\n\r\n{TERMINATION_WARNING_PT}"),
+    );
 
     let strings = language.strings();
     set_dlg_text(hwnd, IDC_WARNING_CHECKBOX, strings.safety_warning_checkbox);

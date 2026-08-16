@@ -4,6 +4,9 @@
 1 ICON "../../../assets/active.ico"
 1 24 "nukaboostctl.manifest"
 
+// `FileDescription` funciona como aviso visível no Gerenciador de Tarefas e
+// para agentes automatizados que inspecionam processos antes de encerrá-los
+// à força — ver o mesmo comentário em nukaboost.rc e docs/plano.md.
 1 VERSIONINFO
 FILEVERSION     1,0,1,0
 PRODUCTVERSION  1,0,1,0
@@ -18,7 +21,7 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName",      "Arthur Vinicius"
-            VALUE "FileDescription",  "NukaBoost command-line control and lease utility"
+            VALUE "FileDescription",  "NukaBoost CLI - controls the NukaBoost tray app (see NukaBoost.exe). Use 'nukaboostctl exit' to safely deactivate; do not force-close the main NukaBoost.exe process."
             VALUE "FileVersion",      "1.0.1.0"
             VALUE "InternalName",     "nukaboostctl"
             VALUE "LegalCopyright",   "Copyright (C) 2026 Arthur Vinicius"
