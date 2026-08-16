@@ -14,8 +14,8 @@ use nukaboost_core::state::State;
 
 use crate::dialogs::set_dlg_text;
 use crate::resource_ids::{
-    IDC_ABOUT_DESC, IDC_ABOUT_SCREEN_NOTE, IDC_ABOUT_STATE, IDC_ABOUT_TITLE, IDC_ABOUT_VENTILATION,
-    IDC_ABOUT_VERSION, IDD_ABOUT,
+    IDC_ABOUT_DESC, IDC_ABOUT_SCREEN_NOTE, IDC_ABOUT_STATE, IDC_ABOUT_TERMINATION, IDC_ABOUT_TITLE,
+    IDC_ABOUT_VENTILATION, IDC_ABOUT_VERSION, IDD_ABOUT,
 };
 use crate::wide::resource_id;
 
@@ -118,6 +118,11 @@ fn populate(hwnd: HWND, info: &AboutInfo<'_>) {
         hwnd,
         IDC_ABOUT_VENTILATION,
         strings.about_ventilation_warning,
+    );
+    set_dlg_text(
+        hwnd,
+        IDC_ABOUT_TERMINATION,
+        strings.about_termination_warning,
     );
     set_dlg_text(hwnd, IDOK.0 as u16, strings.about_close_button);
 }

@@ -4,6 +4,7 @@
 *.pdb
 *.obj
 /installer/*.msi
+/docker/*.msi
 /installer/*.wixobj
 /installer/*.wixpdb
 .idea/

@@ -1,0 +1,123 @@
+name: Publish container
+
+# Distribuicao publica (secao "Como compartilhar" do README/docs): a cada
+# tag vX.Y.Z, reconstroi o MSI do zero (independente do que a CI da branch
+# ja validou) e publica ghcr.io/<owner>/nukaboost:vX.Y.Z, no mesmo desenho
+# do `arrowremove` do homelab -- ver docker/ e tmp/relatorio.txt.
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-container-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-msi:
+    name: Build MSI
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      - name: Run tests
+        run: cargo test --workspace --locked
+
+      - name: Run Clippy
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+
+      - name: Build release binaries
+        run: cargo build --workspace --release --locked
+
+      - name: Confirm WiX 7 OSMF EULA acceptance
+        shell: pwsh
+        env:
+          WIX7_OSMF_EULA_ACCEPTED: ${{ vars.WIX7_OSMF_EULA_ACCEPTED }}
+        run: |
+          if ($env:WIX7_OSMF_EULA_ACCEPTED -ne "true") {
+            throw "Read the WiX 7 OSMF terms and set the repository Actions variable WIX7_OSMF_EULA_ACCEPTED to true before enabling MSI builds."
+          }
+
+      - name: Install WiX Toolset 7
+        shell: pwsh
+        run: |
+          dotnet tool install --global wix --version 7.0.0
+          wix eula accept wix7
+          wix extension add -g WixToolset.UI.wixext/7.0.0
+          wix extension add -g WixToolset.Util.wixext/7.0.0
+
+      - name: Build MSI
+        shell: pwsh
+        run: |
+          wix build installer\NukaBoost.wxs -arch x64 `
+            -b assets=assets -b release=target\release `
+            -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext `
+            -out installer\NukaBoost.msi
+
+      - name: Validate MSI
+        run: wix msi validate -sice ICE91 installer\NukaBoost.msi
+
+      - name: Upload MSI artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: nukaboost-msi
+          path: installer/NukaBoost.msi
+          if-no-files-found: error
+          retention-days: 1
+
+  publish-container:
+    name: Build and publish container
+    needs: build-msi
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Resolve and validate the release tag
+        id: tag
+        run: |
+          tag="${GITHUB_REF#refs/tags/}"
+          # Semver estrito (vX.Y.Z): o CLI do homelab descobre a versao
+          # mais nova filtrando exatamente por esse formato -- ver
+          # tmp/solicitacao.txt.
+          if ! [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Tag '$tag' is not strict semver (vX.Y.Z); the homelab CLI only discovers versions matching that exact pattern." >&2
+            exit 1
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Download MSI artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: nukaboost-msi
+          path: docker
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v7
+        with:
+          context: docker
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/nukaboost:${{ steps.tag.outputs.tag }}

@@ -384,6 +384,7 @@ dependencies = [
  "nukaboost-core",
  "nukaboost-win32",
  "serde_json",
+ "tempfile",
  "tracing",
  "tracing-appender",
  "tracing-subscriber",

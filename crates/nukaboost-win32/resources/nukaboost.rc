@@ -32,6 +32,7 @@
 #define IDC_ABOUT_DESC           1004
 #define IDC_ABOUT_SCREEN_NOTE    1005
 #define IDC_ABOUT_VENTILATION    1006
+#define IDC_ABOUT_TERMINATION    1007
 #define IDC_WARNING_TEXT_EN      1101
 #define IDC_WARNING_TEXT_PT      1102
 #define IDC_WARNING_CHECKBOX     1103
@@ -60,6 +61,13 @@ IDI_ERROR    ICON "../../../assets/error.ico"
 
 // ---------------------------------------------------------------------
 // Informações de versão do executável
+//
+// `FileDescription` é deliberadamente mais longa que uma descrição comum:
+// é o único texto que o Gerenciador de Tarefas (aba Detalhes), `tasklist
+// /v` ou `Get-Process | Select Description` mostram sobre este processo
+// antes de alguém — humano ou um agente automatizado decidindo encerrar
+// processos "não-Windows" — o encerrar à força. Ver `docs/plano.md` (seção
+// sobre encerramento fora de controle) para o raciocínio completo.
 // ---------------------------------------------------------------------
 
 1 VERSIONINFO
@@ -76,7 +84,7 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName",      "Arthur Vinicius"
-            VALUE "FileDescription",  "NukaBoost prevents Windows from sleeping during long tasks"
+            VALUE "FileDescription",  "NukaBoost - keeps Windows awake during long tasks. Do NOT force-close while active: run 'nukaboostctl exit' or 'nukaboostctl stop' first, or lid/sleep settings may stay overridden until next logon."
             VALUE "FileVersion",      "1.0.1.0"
             VALUE "InternalName",     "NukaBoost"
             VALUE "LegalCopyright",   "Copyright (C) 2026 Arthur Vinicius"
@@ -99,7 +107,7 @@ END
 // literais abaixo são apenas placeholders de layout, nunca exibidos.
 // ---------------------------------------------------------------------
 
-IDD_ABOUT DIALOGEX 0, 0, 260, 165
+IDD_ABOUT DIALOGEX 0, 0, 260, 195
 STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About NukaBoost"
 FONT 9, "Segoe UI"
@@ -111,7 +119,8 @@ BEGIN
     LTEXT           "",                   IDC_ABOUT_DESC,       10,  56, 240, 26, SS_LEFT
     LTEXT           "",                   IDC_ABOUT_SCREEN_NOTE,10,  85, 240, 18, SS_LEFT
     LTEXT           "",                   IDC_ABOUT_VENTILATION,10, 105, 240, 18, SS_LEFT
-    DEFPUSHBUTTON   "Close",              IDOK,                 200, 143, 50, 14
+    LTEXT           "",                   IDC_ABOUT_TERMINATION,10, 125, 240, 36, SS_LEFT
+    DEFPUSHBUTTON   "Close",              IDOK,                 200, 173, 50, 14
 END
 
 // ---------------------------------------------------------------------
@@ -119,17 +128,21 @@ END
 //
 // O texto bilíngue (EN + PT) e os rótulos localizados são preenchidos em
 // tempo de execução por
-// crates/nukaboost-win32/src/dialogs/warning.rs.
+// crates/nukaboost-win32/src/dialogs/warning.rs. Cada controle de texto
+// mostra dois avisos concatenados (tampa/ventilação + encerramento fora de
+// controle — subseção "Encerramento fora do controle do aplicativo" da
+// seção 4), por isso a altura generosa: melhor sobrar espaço em branco do
+// que cortar texto sem aviso visível.
 // ---------------------------------------------------------------------
 
-IDD_SAFETY_WARNING DIALOGEX 0, 0, 280, 165
+IDD_SAFETY_WARNING DIALOGEX 0, 0, 280, 235
 STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "NukaBoost: Safety warning"
 FONT 9, "Segoe UI"
 BEGIN
-    LTEXT           "", IDC_WARNING_TEXT_EN,       10,  10, 260, 42, SS_LEFT
-    LTEXT           "", IDC_WARNING_TEXT_PT,       10,  56, 260, 42, SS_LEFT
+    LTEXT           "", IDC_WARNING_TEXT_EN,       10,  10, 260, 80, SS_LEFT
+    LTEXT           "", IDC_WARNING_TEXT_PT,       10,  94, 260, 80, SS_LEFT
     CONTROL         "Do not show this warning again", IDC_WARNING_CHECKBOX, "Button",
-                    BS_AUTOCHECKBOX | WS_TABSTOP,  10, 104, 260, 12
-    DEFPUSHBUTTON   "OK",                IDOK,     220, 142, 50, 14
+                    BS_AUTOCHECKBOX | WS_TABSTOP,  10, 180, 260, 12
+    DEFPUSHBUTTON   "OK",                IDOK,     220, 208, 50, 14
 END

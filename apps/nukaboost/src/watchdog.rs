@@ -65,10 +65,45 @@ impl Drop for WatchdogHandle {
     }
 }
 
-/// Lança `NukaBoost.exe --watchdog <main_pid> <session_id>` como processo
-/// filho, sem janela de console.
+/// Nome sob o qual a cópia do executável usada pelo watchdog é gravada,
+/// ao lado do `NukaBoost.exe` principal (ver [`watchdog_exe_path`]).
+const WATCHDOG_COPY_NAME: &str = "NukaBoostWatchdog.exe";
+
+/// Caminho do executável a lançar para o watchdog: uma cópia do próprio
+/// `NukaBoost.exe` sob outro nome, sempre que possível.
+///
+/// Isso existe para que matar o processo principal pelo nome — pelo
+/// Gerenciador de Tarefas, por `taskkill /IM NukaBoost.exe`, ou por um
+/// agente automatizado varrendo processos por nome de imagem — não derrube
+/// o watchdog junto. Nesse caso o watchdog continua vivo sob outro nome,
+/// nota a morte do processo principal e restaura o plano de energia na
+/// hora, sem esperar o próximo logon.
+///
+/// A cópia é refeita a cada ativação (nunca fica desatualizada depois de
+/// uma atualização do aplicativo) e é best-effort: se falhar por qualquer
+/// motivo (por exemplo, um watchdog de uma sessão anterior ainda travando o
+/// arquivo), cai de volta ao próprio executável — o comportamento de hoje,
+/// que já funciona — em vez de impedir a ativação.
+fn watchdog_exe_path(main_exe: &std::path::Path) -> std::path::PathBuf {
+    let copy_path = main_exe.with_file_name(WATCHDOG_COPY_NAME);
+    match std::fs::copy(main_exe, &copy_path) {
+        Ok(_) => copy_path,
+        Err(e) => {
+            tracing::warn!(
+                error = %e,
+                "failed to create a separately named watchdog copy; falling back to the main executable"
+            );
+            main_exe.to_path_buf()
+        }
+    }
+}
+
+/// Lança `<watchdog-exe> --watchdog <main_pid> <session_id>` como processo
+/// filho, sem janela de console. Ver [`watchdog_exe_path`] para por que o
+/// executável lançado normalmente não é o próprio `NukaBoost.exe`.
 pub fn spawn(main_pid: u32, session_id: Uuid) -> NukaResult<WatchdogHandle> {
-    let exe = std::env::current_exe().map_err(|e| NukaError::io("<current_exe>", e))?;
+    let main_exe = std::env::current_exe().map_err(|e| NukaError::io("<current_exe>", e))?;
+    let exe = watchdog_exe_path(&main_exe);
     let command_line = format!("\"{}\" --watchdog {main_pid} {session_id}", exe.display());
     let mut command_line_wide = to_wide_null(&command_line);
 
@@ -159,4 +194,32 @@ fn open_process_to_wait(main_pid: u32, session_id: Uuid) -> NukaResult<Option<HA
     .ok();
 
     Ok(handle)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn watchdog_exe_path_copies_next_to_the_main_exe() {
+        let dir = tempfile::tempdir().unwrap();
+        let main_exe = dir.path().join("Main.exe");
+        std::fs::write(&main_exe, b"stub").unwrap();
+
+        let watchdog_path = watchdog_exe_path(&main_exe);
+
+        assert_eq!(watchdog_path, dir.path().join(WATCHDOG_COPY_NAME));
+        assert_eq!(std::fs::read(&watchdog_path).unwrap(), b"stub");
+    }
+
+    #[test]
+    fn watchdog_exe_path_falls_back_when_copying_is_impossible() {
+        // Um diretório-pai inexistente faz `fs::copy` falhar de forma
+        // previsível sem precisar simular um arquivo em uso.
+        let missing_main_exe = std::path::Path::new("Z:\\definitely\\missing\\Main.exe");
+
+        let watchdog_path = watchdog_exe_path(missing_main_exe);
+
+        assert_eq!(watchdog_path, missing_main_exe);
+    }
 }
