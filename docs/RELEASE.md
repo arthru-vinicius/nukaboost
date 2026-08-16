@@ -100,6 +100,18 @@ gh release create v1.0.1 `
   --title "NukaBoost v1.0.1"
 ```
 
+`git push origin v1.0.1` também dispara `.github/workflows/publish-container.yml`:
+ele reconstrói o MSI do zero e publica
+`ghcr.io/<owner>/nukaboost:v1.0.1` — a imagem que serve o instalador via
+`irm | iex` no homelab (ver `docker/`). Nenhum segredo extra é necessário;
+o workflow usa o `GITHUB_TOKEN` padrão com permissão `packages: write`.
+
+**Só na primeira publicação**, o pacote é criado como privado por padrão no
+GHCR — abra **github.com/arthru-vinicius?tab=packages → nukaboost → Package
+settings** e mude a visibilidade para *Public* (senão `docker compose pull`
+no homelab falha com `unauthorized`). Publicações seguintes reaproveitam essa
+configuração.
+
 Se você ainda não usa GitHub CLI, crie a tag e depois abra **Releases → Draft
 a new release**, selecione a tag, anexe os mesmos quatro arquivos e salve como
 draft. Não anexe `target/` inteiro, PDBs, certificados ou chaves.
